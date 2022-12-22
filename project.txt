@@ -1,0 +1,1143 @@
+MariaDB [(none)]> create database cycles;
+Query OK, 1 row affected (0.004 sec)
+
+MariaDB [(none)]> use cycles;
+Database changed
+
+MariaDB [cycles]> CREATE TABLE productioncategories (
+    ->  categoryid int PRIMARY KEY,
+    ->  categoryname VARCHAR (255) NOT NULL);
+Query OK, 0 rows affected (0.018 sec)
+
+MariaDB [cycles]> CREATE TABLE productionbrands (
+    ->  brandid INT PRIMARY KEY,
+    ->  brandname VARCHAR (255) NOT NULL);
+Query OK, 0 rows affected (0.018 sec)
+
+MariaDB [cycles]> CREATE TABLE productionproducts (
+    ->  productid INT PRIMARY KEY,
+    ->  productname VARCHAR (255) NOT NULL,
+    ->  brandid INT NOT NULL,
+    ->  categoryid INT NOT NULL,
+    ->  modelyear INT NOT NULL,
+    ->  listprice float NOT NULL,
+    ->  FOREIGN KEY (categoryid) REFERENCES productioncategories (categoryid),
+    ->  FOREIGN KEY (brandid) REFERENCES productionbrands (brandid) );
+Query OK, 0 rows affected (0.019 sec)
+
+MariaDB [cycles]> CREATE TABLE salescustomers (
+    ->  customerid int PRIMARY KEY,
+    ->  firstname VARCHAR (255) NOT NULL,
+    ->  lastname VARCHAR (255) NOT NULL,
+    ->  phone VARCHAR (25),
+    ->  email VARCHAR (255) NOT NULL,
+    ->  street VARCHAR (255),
+    ->  city VARCHAR (50),
+    ->  state VARCHAR (25),
+    ->  zipcode VARCHAR (5));
+Query OK, 0 rows affected (0.015 sec)
+
+MariaDB [cycles]> CREATE TABLE salesstores (
+    ->  storeid INT PRIMARY KEY,
+    ->  storename VARCHAR (255) NOT NULL,
+    ->  phone VARCHAR (25),
+    ->  email VARCHAR (255),
+    ->  street VARCHAR (255),
+    ->  city VARCHAR (255),
+    ->  state VARCHAR (10),
+    ->  zipcode VARCHAR (5));
+Query OK, 0 rows affected (0.015 sec)
+
+MariaDB [cycles]> CREATE TABLE salesstaffs (
+    ->  staffid INT PRIMARY KEY,
+    ->  firstname VARCHAR (50) NOT NULL,
+    ->  lastname VARCHAR (50) NOT NULL,
+    ->  email VARCHAR (255) NOT NULL UNIQUE,
+    ->  phone VARCHAR (25),
+    ->  active int NOT NULL,
+    ->  storeid INT NOT NULL,
+    ->  managerid INT,
+    ->  FOREIGN KEY (storeid) REFERENCES salesstores (storeid),
+    ->  FOREIGN KEY (managerid) REFERENCES salesstaffs (staffid));
+Query OK, 0 rows affected (0.020 sec)
+
+MariaDB [cycles]> CREATE TABLE salesorders (
+    ->  orderid INT PRIMARY KEY,
+    ->  customerid INT,
+    ->  orderstatus int NOT NULL,
+    ->  orderdate DATE NOT NULL,
+    ->  requireddate DATE NOT NULL,
+    ->  shippeddate DATE,
+    ->  storeid INT NOT NULL,
+    ->  staffid INT NOT NULL,
+    ->  FOREIGN KEY (customerid) REFERENCES salescustomers (customerid),
+    ->  FOREIGN KEY (storeid) REFERENCES salesstores (storeid),
+    ->  FOREIGN KEY (staffid) REFERENCES salesstaffs (staffid));
+Query OK, 0 rows affected (0.016 sec)
+
+MariaDB [cycles]> CREATE TABLE salesorderitems (
+    ->  orderid INT,
+    ->  itemid INT,
+    ->  productid INT NOT NULL,
+    ->  quantity INT NOT NULL,
+    ->  listprice float NOT NULL,
+    ->  discount float NOT NULL,
+    ->  PRIMARY KEY (orderid, itemid),
+    ->  FOREIGN KEY (orderid) REFERENCES salesorders (orderid),
+    ->  FOREIGN KEY (productid) REFERENCES productionproducts (productid));
+Query OK, 0 rows affected (0.018 sec)
+
+MariaDB [cycles]> CREATE TABLE productionstocks (
+    ->  storeid INT,
+    ->  productid INT,
+    ->  quantity INT,
+    ->  PRIMARY KEY (storeid, productid),
+    ->  FOREIGN KEY (storeid) REFERENCES salesstores (storeid),
+    ->  FOREIGN KEY (productid) REFERENCES productionproducts (productid));
+Query OK, 0 rows affected (0.017 sec)
+
+MariaDB [cycles]> desc productioncategories;
++--------------+--------------+------+-----+---------+-------+
+| Field        | Type         | Null | Key | Default | Extra |
++--------------+--------------+------+-----+---------+-------+
+| categoryid   | int(11)      | NO   | PRI | NULL    |       |
+| categoryname | varchar(255) | NO   |     | NULL    |       |
++--------------+--------------+------+-----+---------+-------+
+2 rows in set (0.005 sec)
+
+MariaDB [cycles]> productionbrands;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'productionbrands' at
+ line 1
+MariaDB [cycles]> desc productionbrands;
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| brandid   | int(11)      | NO   | PRI | NULL    |       |
+| brandname | varchar(255) | NO   |     | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+2 rows in set (0.006 sec)
+
+MariaDB [cycles]> desc productionproducts;
++-------------+--------------+------+-----+---------+-------+
+| Field       | Type         | Null | Key | Default | Extra |
++-------------+--------------+------+-----+---------+-------+
+| productid   | int(11)      | NO   | PRI | NULL    |       |
+| productname | varchar(255) | NO   |     | NULL    |       |
+| brandid     | int(11)      | NO   | MUL | NULL    |       |
+| categoryid  | int(11)      | NO   | MUL | NULL    |       |
+| modelyear   | int(11)      | NO   |     | NULL    |       |
+| listprice   | float        | NO   |     | NULL    |       |
++-------------+--------------+------+-----+---------+-------+
+6 rows in set (0.005 sec)
+
+MariaDB [cycles]> desc salecustomers;
+ERROR 1146 (42S02): Table 'cycles.salecustomers' doesn't exist
+MariaDB [cycles]> desc salescustomers;
++------------+--------------+------+-----+---------+-------+
+| Field      | Type         | Null | Key | Default | Extra |
++------------+--------------+------+-----+---------+-------+
+| customerid | int(11)      | NO   | PRI | NULL    |       |
+| firstname  | varchar(255) | NO   |     | NULL    |       |
+| lastname   | varchar(255) | NO   |     | NULL    |       |
+| phone      | varchar(25)  | YES  |     | NULL    |       |
+| email      | varchar(255) | NO   |     | NULL    |       |
+| street     | varchar(255) | YES  |     | NULL    |       |
+| city       | varchar(50)  | YES  |     | NULL    |       |
+| state      | varchar(25)  | YES  |     | NULL    |       |
+| zipcode    | varchar(5)   | YES  |     | NULL    |       |
++------------+--------------+------+-----+---------+-------+
+9 rows in set (0.005 sec)
+
+MariaDB [cycles]> desc salesstores;
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| storeid   | int(11)      | NO   | PRI | NULL    |       |
+| storename | varchar(255) | NO   |     | NULL    |       |
+| phone     | varchar(25)  | YES  |     | NULL    |       |
+| email     | varchar(255) | YES  |     | NULL    |       |
+| street    | varchar(255) | YES  |     | NULL    |       |
+| city      | varchar(255) | YES  |     | NULL    |       |
+| state     | varchar(10)  | YES  |     | NULL    |       |
+| zipcode   | varchar(5)   | YES  |     | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+8 rows in set (0.005 sec)
+
+MariaDB [cycles]> desc salesstaffs;
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| staffid   | int(11)      | NO   | PRI | NULL    |       |
+| firstname | varchar(50)  | NO   |     | NULL    |       |
+| lastname  | varchar(50)  | NO   |     | NULL    |       |
+| email     | varchar(255) | NO   | UNI | NULL    |       |
+| phone     | varchar(25)  | YES  |     | NULL    |       |
+| active    | int(11)      | NO   |     | NULL    |       |
+| storeid   | int(11)      | NO   | MUL | NULL    |       |
+| managerid | int(11)      | YES  | MUL | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+8 rows in set (0.017 sec)
+
+MariaDB [cycles]> desc salesorders;
++--------------+---------+------+-----+---------+-------+
+| Field        | Type    | Null | Key | Default | Extra |
++--------------+---------+------+-----+---------+-------+
+| orderid      | int(11) | NO   | PRI | NULL    |       |
+| customerid   | int(11) | YES  | MUL | NULL    |       |
+| orderstatus  | int(11) | NO   |     | NULL    |       |
+| orderdate    | date    | NO   |     | NULL    |       |
+| requireddate | date    | NO   |     | NULL    |       |
+| shippeddate  | date    | YES  |     | NULL    |       |
+| storeid      | int(11) | NO   | MUL | NULL    |       |
+| staffid      | int(11) | NO   | MUL | NULL    |       |
++--------------+---------+------+-----+---------+-------+
+8 rows in set (0.005 sec)
+
+MariaDB [cycles]> desc salesordertime;
+ERROR 1146 (42S02): Table 'cycles.salesordertime' doesn't exist
+MariaDB [cycles]> desc salesorderitems;
++-----------+---------+------+-----+---------+-------+
+| Field     | Type    | Null | Key | Default | Extra |
++-----------+---------+------+-----+---------+-------+
+| orderid   | int(11) | NO   | PRI | NULL    |       |
+| itemid    | int(11) | NO   | PRI | NULL    |       |
+| productid | int(11) | NO   | MUL | NULL    |       |
+| quantity  | int(11) | NO   |     | NULL    |       |
+| listprice | float   | NO   |     | NULL    |       |
+| discount  | float   | NO   |     | NULL    |       |
++-----------+---------+------+-----+---------+-------+
+6 rows in set (0.006 sec)
+
+MariaDB [cycles]> desc productionstocks;
++-----------+---------+------+-----+---------+-------+
+| Field     | Type    | Null | Key | Default | Extra |
++-----------+---------+------+-----+---------+-------+
+| storeid   | int(11) | NO   | PRI | NULL    |       |
+| productid | int(11) | NO   | PRI | NULL    |       |
+| quantity  | int(11) | YES  |     | NULL    |       |
++-----------+---------+------+-----+---------+-------+
+3 rows in set (0.006 sec)
+
+MariaDB [cycles]> INSERT INTO productionbrands(brandid,brandname) VALUES(1,'Electra'),(2,'Haro'),(3,'Heller'),(4,'Pure Cycles'),(5,'Ritchey'),(6,'Strider'),(7,'Sun Bicycles'),(8
+,'Surly'),(9,'Trek');
+Query OK, 9 rows affected (0.006 sec)
+Records: 9  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO productioncategories(categoryid,categoryname) VALUES(1,'Children Bicycles'),(2,'Comfort Bicycles'),(3,'Cruisers Bicycles'),(4,'Cyclocross Bicycles'
+),(5,'Electric Bikes'),(6,'Mountain Bikes'),(7,'Road Bikes');
+Query OK, 7 rows affected (0.018 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO productionproducts(productid, productname, brandid, categoryid, modelyear, listprice) VALUES(1,'Electra Townie Original 21D - 2016',1,1,2016,549.99
+),(2,'Electra Girl''s Hawaii 1 (16-inch) - 2015/2016',1,2,2016,269.99),(3,'Electra Moto 1 - 2016',1,3,2016,529.99),(4,'Electra Townie Original 7D EQ - 2016',1,3,2016,599.99),(5,
+'Electra Girl''s Hawaii 1 (16-inch) - 2015/2016',1,1,2016,269.99),(6,'Electra Townie Original 7D EQ - 2016',1,2,2016,599.99),(7,'Electra Amsterdam Original 3i - 2015/2017',1,3,2
+017,659.99),(8,'Electra Cruiser Lux Fat Tire 1 Ladies - 2017',1,4,2017,599.99),(9,'Electra Moto 3i (20-inch) - Boy''s - 2017',1,5,2017,349.99),(10,'Haro Flightline One ST - 2017
+',2,6,2017,379.99),(11,'Haro Flightline Two 26 Plus - 2017',2,7,2017,549.99),(12,'Haro Shift R3 - 2017',2,6,2017,1469.99),(13,'Heller Shagamaw Frame - 2016',3,6,2016,1320.99),(1
+4,'Ritchey Timberwolf Frameset - 2016',5,6,2016,749.99),(15,'Pure Cycles Vine 8-Speed - 2016',4,3,2016,429),(16,'Pure Cycles Western 3-Speed - Women''s - 2015/2016',4,3,2016,449
+),(17,'Pure Cycles William 3-Speed - 2016',4,3,2016,449),(18,'Sun Bicycles Lil Bolt Type-R - 2017',7,3,2017,346.99),(19,'Sun Bicycles Revolutions 24 - 2017',7,3,2017,250.99),(20
+,'Sun Bicycles Revolutions 24 - Girl''s - 2017',7,3,2017,250.99),(21,'Sun Bicycles Cruz 7 - 2017',7,3,2017,416.99),(22,'Sun Bicycles Brickell Tandem 7 - 2017',7,3,2017,749.99),(
+23,'Sun Bicycles Brickell Tandem CB - 2017',7,3,2017,761.99),(24,'Trek Boy''s Kickster - 2015/2017',9,1,2017,149.99),(25,'Trek Girl''s Kickster - 2017',9,1,2017,149.99),(26,'Tre
+k Precaliber 16 Boys - 2017',9,1,2017,209.99),(27,'Strider Strider 20 Sport - 2018',6,1,2018,289.99),(28,'Surly Straggler - 2016',8,4,2016,1549),(29,'Surly Straggler 650b - 2016
+',8,4,2016,1680.99),(30,'Surly Big Dummy Frameset - 2017',8,7,2017,999.99);
+Query OK, 30 rows affected (0.008 sec)
+Records: 30  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO salescustomers(customerid,firstname, lastname, phone, email, street, city, state, zipcode) VALUES(1,'Debra','Burks','559874','debra.burks@yahoo.com
+','9273 Thorne Ave. ','Orchard Park','NY',14127),(2,'Kasha','Todd','9956248','kasha.todd@yahoo.com','910 Vine Street ','Campbell','CA',95008),(3,'Tameka','Fisher','8956412','tam
+eka.fisher@aol.com','769C Honey Creek St. ','Redondo Beach','CA',90278),(4,'Daryl','Spence','5231444','daryl.spence@aol.com','988 Pearl Lane ','Uniondale','NY',11553),(5,'Charol
+ette','Rice','45216003','charolette.rice@msn.com','107 River Dr. ','Sacramento','CA',95820),(6,'Lyndsey','Bean','56632144','lyndsey.bean@hotmail.com','769 West Road ','Fairport'
+,'NY',14450),(7,'Latasha','Hays','986-3359','latasha.hays@hotmail.com','7014 Manor Station Rd. ','Buffalo','NY',14215),(8,'Jacquline','Duncan','9783456','jacquline.duncan@yahoo.
+com','15 Brown St. ','Jackson Heights','NY',11372),(9,'Genoveva','Baldwin','8765908','genoveva.baldwin@msn.com','8550 Spruce Drive ','Port Washington','NY',11050),(10,'Pamelia',
+'Newman','90887689','pamelia.newman@gmail.com','476 Chestnut Ave. ','Monroe','NY',10950),(11,'Deshawn','Mendoza','56320012','deshawn.mendoza@yahoo.com','8790 Cobblestone Street
+','Monsey','NY',10952),(12,'Robby','Sykes','(516) 583-7761','robby.sykes@hotmail.com','486 Rock Maple Street ','Hempstead','NY',11550),(13,'Lashawn','Ortiz','78999675','lashawn.
+ortiz@msn.com','27 Washington Rd. ','Longview','TX',75604),(14,'Garry','Espinoza','5462201','garry.espinoza@hotmail.com','7858 Rockaway Court ','Forney','TX',75126),(15,'Linnie'
+,'Branch','8523001','linnie.branch@gmail.com','314 South Columbia Ave. ','Plattsburgh','NY',12901),(16,'Emmitt','Sanchez','(212) 945-8823','emmitt.sanchez@hotmail.com','461 Squa
+w Creek Road ','New York','NY',10002),(17,'Caren','Stephens','52319887','caren.stephens@msn.com','914 Brook St. ','Scarsdale','NY',10583),(18,'Georgetta','Hardin','8765990','geo
+rgetta.hardin@aol.com','474 Chapel Dr. ','Canandaigua','NY',14424),(19,'Lizzette','Stein','90776887','lizzette.stein@yahoo.com','19 Green Hill Lane ','Orchard Park','NY',14127),
+(20,'Aleta','Shepard','5520321','aleta.shepard@aol.com','684 Howard St. ','Sugar Land','TX',77478);
+Query OK, 20 rows affected (0.004 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO salesstores(storeid,storename, phone, email, street, city, state, zipcode)VALUES(1,'Santa Cruz Bikes','58476-4321','santacruz@bikes.shop','3700 Por
+tola Drive', 'Santa Cruz','CA',95060),(2,'Baldwin Bikes','51379-8888','baldwin@bikes.shop','4200 Chestnut Lane', 'Baldwin','NY',11432),(3,'Rowlett Bikes','72530-5555','rowlett@b
+ikes.shop','8000 Fairway Avenue', 'Rowlett','TX',75088);
+Query OK, 3 rows affected (0.005 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+
+MariaDB [cycles]> INSERT INTO productionstocks(storeid, productid, quantity) VALUES(1,1,27),(1,2,5),(1,3,6),(1,4,23),(1,5,22),(1,6,0),(1,7,8),(1,8,0),(1,9,11),(1,10,15),(1,11,8)
+,(1,12,16),(1,13,13),(1,14,8),(1,15,3),(1,16,4),(1,17,2),(1,18,16),(1,19,4),(1,20,26),(1,21,24),(1,22,29),(1,23,9),(1,24,10),(1,25,10),(1,26,16),(1,27,21),(1,28,20),(1,29,13),(1
+,30,30),(2,1,27),(2,2,8),(2,3,12),(2,4,22),(2,5,22),(2,6,3),(2,7,18),(2,8,20),(2,9,18),(2,10,25),(2,11,2),(2,12,6),(2,13,23),(2,14,28),(2,15,13),(2,16,34),(2,17,12),(2,18,6),(2,
+19,14),(2,20,0),(2,21,44),(2,22,19),(2,23,4),(2,24,14),(2,25,30),(2,26,26),(2,27,31),(2,28,20),(2,29,33),(2,30,28),(3,1,17),(3,2,15),(3,3,6),(3,4,2),(3,5,21),(3,6,0),(3,7,18),(3
+,8,40),(3,9,41),(3,10,5),(3,11,28),(3,12,1),(3,13,2),(3,14,3),(3,15,4),(3,16,5),(3,17,6),(3,18,7),(3,19,8),(3,20,9),(3,21,11),(3,22,12),(3,23,14),(3,24,16),(3,25,18),(3,26,20),(
+3,27,22),(3,28,24),(3,29,13),(3,30,55);
+Query OK, 90 rows affected (0.010 sec)
+Records: 90  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO salesstaffs(staffid, firstname, lastname, email, phone, active, storeid, managerid) VALUES(1,'Fabiola','Jackson','fabiola.jackson@bikes.shop','(831
+) 555-5554',1,1,1),(2,'Mireya','Copeland','mireya.copeland@bikes.shop','(831) 555-5555',1,1,1),(3,'Genna','Serrano','genna.serrano@bikes.shop','(831) 555-5556',1,1,2),(4,'Virgie
+','Wiggins','virgie.wiggins@bikes.shop','(831) 555-5557',1,1,2),(5,'Jannette','David','jannette.david@bikes.shop','(516) 379-4444',1,2,1),(6,'Marcelene','Boyer','marcelene.boyer
+@bikes.shop','(516) 379-4445',1,2,5),(7,'Venita','Daniel','venita.daniel@bikes.shop','(516) 379-4446',1,2,5),(8,'Kali','Vargas','kali.vargas@bikes.shop','(972) 530-5555',1,3,1),
+(9,'Layla','Terrell','layla.terrell@bikes.shop','(972) 530-5556',1,3,7),(10,'Bernardine','Houston','bernardine.houston@bikes.shop','(972) 530-5557',1,3,7);
+Query OK, 10 rows affected (0.004 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> INSERT INTO salesorders(orderid, customerid, orderstatus, orderdate, requireddate, shippeddate, storeid,staffid) VALUES(1,1,4,'2016-01-01','2016-01-03','2016-0
+1-03',1,2),(2,2,4,'2016-01-01','2016-01-04','2016-01-03',2,6),(3,3,4,'2016-01-02','2016-01-05','2016-01-03',2,7),(4,4,4,'2016-01-03','2016-01-04','2016-01-05',1,3),(5,5,4,'2016-
+01-03','2016-01-06','2016-01-06',2,10),(6,6,4,'2016-01-04','2016-01-07','2016-01-05',2,9),(7,7,4,'2016-01-04','2016-01-07','2016-01-05',2,8),(8,8,4,'2016-01-04','2016-01-05','20
+16-01-05',2,5),(9,9,4,'2016-01-05','2016-01-08','2016-01-08',1,4),(10,10,4,'2016-01-05','2016-01-06','2016-01-06',2,1),(11,11,4,'2016-01-05','2016-01-08','2016-01-07',2,7),(12,1
+2,4,'2016-01-06','2016-01-08','2016-01-09',1,2),(13,13,4,'2016-01-08','2016-01-11','2016-01-11',2,6),(14,14,4,'2016-01-09','2016-01-11','2016-01-12',1,3),(15,15,4,'2016-01-09','
+2016-01-10','2016-01-12',2,7),(16,16,4,'2016-01-12','2016-01-15','2016-01-15',1,3),(17,17,4,'2016-01-12','2016-01-14','2016-01-14',1,3),(18,18,4,'2016-01-14','2016-01-17','2016-
+01-15',1,3),(19,19,4,'2016-01-14','2016-01-17','2016-01-16',1,2),(20,20,4,'2016-01-14','2016-01-16','2016-01-17',1,2);
+Query OK, 20 rows affected (0.008 sec)
+Records: 20  Duplicates: 0  Warnings: 0
+
+
+MariaDB [cycles]> INSERT INTO salesorderitems(orderid, itemid, productid, quantity, listprice,discount) VALUES(1,1,20,1,250.99,0.2),(2,2,8,2,1199.98,0.07),(3,3,10,2,759.98,0.05)
+,(4,4,16,2,898.00,0.05),(5,5,4,1,599.99,0.2),(6,6,1,1,549.99,0.07),(7,7,2,2,539.98,0.05),(8,8,3,1,529.99,0.05),(9,9,4,1,599.99,0.05),(10,10,6,2,1119.99,0.1),(11,11,19,2,501.98,0
+.05),(12,12,17,1,449.00,0.07),(13,13,11,1,549.99,0.07),(14,14,18,1,346.99,0.07),(15,15,12,2,2939.98,0.05),(16,16,15,1,429.00,0.1),(17,17,9,2,699.98,0.07),(18,18,5,2,539.98,0.07)
+,(19,19,14,1,749.99,0.07),(20,20,7,1,659.99,0.1),(1,21,13,2,2641.98,0.1),(12,22,22,1,749.99,0.05),(3,23,21,2,833.98,0.07),(11,24,27,2,579.98,0.1),(10,25,24,1,149.99,0.1),(19,26,
+28,1,1549.00,0.05),(15,27,23,2,1523.98,0.1),(4,28,29,2,3361.98,0.2),(7,29,30,2,1999.98,0.1),(2,30,25,1,149.99,0.8),(18,31,26,4,839.96,10.2);
+Query OK, 31 rows affected (0.009 sec)
+Records: 31  Duplicates: 0  Warnings: 0
+
+MariaDB [cycles]> select*from productioncategories;
+ERROR 2006 (HY000): MySQL server has gone away
+No connection. Trying to reconnect...
+Connection id:    87
+Current database: cycles
+
++------------+---------------------+
+| categoryid | categoryname        |
++------------+---------------------+
+|          1 | Children Bicycles   |
+|          2 | Comfort Bicycles    |
+|          3 | Cruisers Bicycles   |
+|          4 | Cyclocross Bicycles |
+|          5 | Electric Bikes      |
+|          6 | Mountain Bikes      |
+|          7 | Road Bikes          |
++------------+---------------------+
+7 rows in set (0.010 sec)
+
+MariaDB [cycles]> select*from productionbrands;
++---------+--------------+
+| brandid | brandname    |
++---------+--------------+
+|       1 | Electra      |
+|       2 | Haro         |
+|       3 | Heller       |
+|       4 | Pure Cycles  |
+|       5 | Ritchey      |
+|       6 | Strider      |
+|       7 | Sun Bicycles |
+|       8 | Surly        |
+|       9 | Trek         |
++---------+--------------+
+9 rows in set (0.031 sec)
+
+MariaDB [cycles]> select*from productionproducts;
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+| productid | productname                                       | brandid | categoryid | modelyear | listprice |
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+|         1 | Electra Townie Original 21D - 2016                |       1 |          1 |      2016 |    549.99 |
+|         2 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |       1 |          2 |      2016 |    269.99 |
+|         3 | Electra Moto 1 - 2016                             |       1 |          3 |      2016 |    529.99 |
+|         4 | Electra Townie Original 7D EQ - 2016              |       1 |          3 |      2016 |    599.99 |
+|         5 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |       1 |          1 |      2016 |    269.99 |
+|         6 | Electra Townie Original 7D EQ - 2016              |       1 |          2 |      2016 |    599.99 |
+|         7 | Electra Amsterdam Original 3i - 2015/2017         |       1 |          3 |      2017 |    659.99 |
+|         8 | Electra Cruiser Lux Fat Tire 1 Ladies - 2017      |       1 |          4 |      2017 |    599.99 |
+|         9 | Electra Moto 3i (20-inch) - Boy's - 2017          |       1 |          5 |      2017 |    349.99 |
+|        10 | Haro Flightline One ST - 2017                     |       2 |          6 |      2017 |    379.99 |
+|        11 | Haro Flightline Two 26 Plus - 2017                |       2 |          7 |      2017 |    549.99 |
+|        12 | Haro Shift R3 - 2017                              |       2 |          6 |      2017 |   1469.99 |
+|        13 | Heller Shagamaw Frame - 2016                      |       3 |          6 |      2016 |   1320.99 |
+|        14 | Ritchey Timberwolf Frameset - 2016                |       5 |          6 |      2016 |    749.99 |
+|        15 | Pure Cycles Vine 8-Speed - 2016                   |       4 |          3 |      2016 |       429 |
+|        16 | Pure Cycles Western 3-Speed - Women's - 2015/2016 |       4 |          3 |      2016 |       449 |
+|        17 | Pure Cycles William 3-Speed - 2016                |       4 |          3 |      2016 |       449 |
+|        18 | Sun Bicycles Lil Bolt Type-R - 2017               |       7 |          3 |      2017 |    346.99 |
+|        19 | Sun Bicycles Revolutions 24 - 2017                |       7 |          3 |      2017 |    250.99 |
+|        20 | Sun Bicycles Revolutions 24 - Girl's - 2017       |       7 |          3 |      2017 |    250.99 |
+|        21 | Sun Bicycles Cruz 7 - 2017                        |       7 |          3 |      2017 |    416.99 |
+|        22 | Sun Bicycles Brickell Tandem 7 - 2017             |       7 |          3 |      2017 |    749.99 |
+|        23 | Sun Bicycles Brickell Tandem CB - 2017            |       7 |          3 |      2017 |    761.99 |
+|        24 | Trek Boy's Kickster - 2015/2017                   |       9 |          1 |      2017 |    149.99 |
+|        25 | Trek Girl's Kickster - 2017                       |       9 |          1 |      2017 |    149.99 |
+|        26 | Trek Precaliber 16 Boys - 2017                    |       9 |          1 |      2017 |    209.99 |
+|        27 | Strider Strider 20 Sport - 2018                   |       6 |          1 |      2018 |    289.99 |
+|        28 | Surly Straggler - 2016                            |       8 |          4 |      2016 |      1549 |
+|        29 | Surly Straggler 650b - 2016                       |       8 |          4 |      2016 |   1680.99 |
+|        30 | Surly Big Dummy Frameset - 2017                   |       8 |          7 |      2017 |    999.99 |
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+30 rows in set (0.002 sec)
+
+MariaDB [cycles]> select*from salescustomers;
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+| customerid | firstname  | lastname | phone          | email                      | street                   | city            | state | zipcode |
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+|          1 | Debra      | Burks    | 559874         | debra.burks@yahoo.com      | 9273 Thorne Ave.         | Orchard Park    | NY    | 14127   |
+|          2 | Kasha      | Todd     | 9956248        | kasha.todd@yahoo.com       | 910 Vine Street          | Campbell        | CA    | 95008   |
+|          3 | Tameka     | Fisher   | 8956412        | tameka.fisher@aol.com      | 769C Honey Creek St.     | Redondo Beach   | CA    | 90278   |
+|          4 | Daryl      | Spence   | 5231444        | daryl.spence@aol.com       | 988 Pearl Lane           | Uniondale       | NY    | 11553   |
+|          5 | Charolette | Rice     | 45216003       | charolette.rice@msn.com    | 107 River Dr.            | Sacramento      | CA    | 95820   |
+|          6 | Lyndsey    | Bean     | 56632144       | lyndsey.bean@hotmail.com   | 769 West Road            | Fairport        | NY    | 14450   |
+|          7 | Latasha    | Hays     | 986-3359       | latasha.hays@hotmail.com   | 7014 Manor Station Rd.   | Buffalo         | NY    | 14215   |
+|          8 | Jacquline  | Duncan   | 9783456        | jacquline.duncan@yahoo.com | 15 Brown St.             | Jackson Heights | NY    | 11372   |
+|          9 | Genoveva   | Baldwin  | 8765908        | genoveva.baldwin@msn.com   | 8550 Spruce Drive        | Port Washington | NY    | 11050   |
+|         10 | Pamelia    | Newman   | 90887689       | pamelia.newman@gmail.com   | 476 Chestnut Ave.        | Monroe          | NY    | 10950   |
+|         11 | Deshawn    | Mendoza  | 56320012       | deshawn.mendoza@yahoo.com  | 8790 Cobblestone Street  | Monsey          | NY    | 10952   |
+|         12 | Robby      | Sykes    | (516) 583-7761 | robby.sykes@hotmail.com    | 486 Rock Maple Street    | Hempstead       | NY    | 11550   |
+|         13 | Lashawn    | Ortiz    | 78999675       | lashawn.ortiz@msn.com      | 27 Washington Rd.        | Longview        | TX    | 75604   |
+|         14 | Garry      | Espinoza | 5462201        | garry.espinoza@hotmail.com | 7858 Rockaway Court      | Forney          | TX    | 75126   |
+|         15 | Linnie     | Branch   | 8523001        | linnie.branch@gmail.com    | 314 South Columbia Ave.  | Plattsburgh     | NY    | 12901   |
+|         16 | Emmitt     | Sanchez  | (212) 945-8823 | emmitt.sanchez@hotmail.com | 461 Squaw Creek Road     | New York        | NY    | 10002   |
+|         17 | Caren      | Stephens | 52319887       | caren.stephens@msn.com     | 914 Brook St.            | Scarsdale       | NY    | 10583   |
+|         18 | Georgetta  | Hardin   | 8765990        | georgetta.hardin@aol.com   | 474 Chapel Dr.           | Canandaigua     | NY    | 14424   |
+|         19 | Lizzette   | Stein    | 90776887       | lizzette.stein@yahoo.com   | 19 Green Hill Lane       | Orchard Park    | NY    | 14127   |
+|         20 | Aleta      | Shepard  | 5520321        | aleta.shepard@aol.com      | 684 Howard St.           | Sugar Land      | TX    | 77478   |
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+20 rows in set (0.001 sec)
+
+MariaDB [cycles]> select*from salesstores;
++---------+------------------+------------+----------------------+---------------------+------------+-------+---------+
+| storeid | storename        | phone      | email                | street              | city       | state | zipcode |
++---------+------------------+------------+----------------------+---------------------+------------+-------+---------+
+|       1 | Santa Cruz Bikes | 58476-4321 | santacruz@bikes.shop | 3700 Portola Drive  | Santa Cruz | CA    | 95060   |
+|       2 | Baldwin Bikes    | 51379-8888 | baldwin@bikes.shop   | 4200 Chestnut Lane  | Baldwin    | NY    | 11432   |
+|       3 | Rowlett Bikes    | 72530-5555 | rowlett@bikes.shop   | 8000 Fairway Avenue | Rowlett    | TX    | 75088   |
++---------+------------------+------------+----------------------+---------------------+------------+-------+---------+
+3 rows in set (0.000 sec)
+
+MariaDB [cycles]> select*from salesstaffs;
++---------+------------+----------+-------------------------------+----------------+--------+---------+-----------+
+| staffid | firstname  | lastname | email                         | phone          | active | storeid | managerid |
++---------+------------+----------+-------------------------------+----------------+--------+---------+-----------+
+|       1 | Fabiola    | Jackson  | fabiola.jackson@bikes.shop    | (831) 555-5554 |      1 |       1 |         1 |
+|       2 | Mireya     | Copeland | mireya.copeland@bikes.shop    | (831) 555-5555 |      1 |       1 |         1 |
+|       3 | Genna      | Serrano  | genna.serrano@bikes.shop      | (831) 555-5556 |      1 |       1 |         2 |
+|       4 | Virgie     | Wiggins  | virgie.wiggins@bikes.shop     | (831) 555-5557 |      1 |       1 |         2 |
+|       5 | Jannette   | David    | jannette.david@bikes.shop     | (516) 379-4444 |      1 |       2 |         1 |
+|       6 | Marcelene  | Boyer    | marcelene.boyer@bikes.shop    | (516) 379-4445 |      1 |       2 |         5 |
+|       7 | Venita     | Daniel   | venita.daniel@bikes.shop      | (516) 379-4446 |      1 |       2 |         5 |
+|       8 | Kali       | Vargas   | kali.vargas@bikes.shop        | (972) 530-5555 |      1 |       3 |         1 |
+|       9 | Layla      | Terrell  | layla.terrell@bikes.shop      | (972) 530-5556 |      1 |       3 |         7 |
+|      10 | Bernardine | Houston  | bernardine.houston@bikes.shop | (972) 530-5557 |      1 |       3 |         7 |
++---------+------------+----------+-------------------------------+----------------+--------+---------+-----------+
+10 rows in set (0.001 sec)
+
+MariaDB [cycles]> select*from salesorder;
+ERROR 1146 (42S02): Table 'cycles.salesorder' doesn't exist
+MariaDB [cycles]> select*from salesorders;
++---------+------------+-------------+------------+--------------+-------------+---------+---------+
+| orderid | customerid | orderstatus | orderdate  | requireddate | shippeddate | storeid | staffid |
++---------+------------+-------------+------------+--------------+-------------+---------+---------+
+|       1 |          1 |           4 | 2016-01-01 | 2016-01-03   | 2016-01-03  |       1 |       2 |
+|       2 |          2 |           4 | 2016-01-01 | 2016-01-04   | 2016-01-03  |       2 |       6 |
+|       3 |          3 |           4 | 2016-01-02 | 2016-01-05   | 2016-01-03  |       2 |       7 |
+|       4 |          4 |           4 | 2016-01-03 | 2016-01-04   | 2016-01-05  |       1 |       3 |
+|       5 |          5 |           4 | 2016-01-03 | 2016-01-06   | 2016-01-06  |       2 |      10 |
+|       6 |          6 |           4 | 2016-01-04 | 2016-01-07   | 2016-01-05  |       2 |       9 |
+|       7 |          7 |           4 | 2016-01-04 | 2016-01-07   | 2016-01-05  |       2 |       8 |
+|       8 |          8 |           4 | 2016-01-04 | 2016-01-05   | 2016-01-05  |       2 |       5 |
+|       9 |          9 |           4 | 2016-01-05 | 2016-01-08   | 2016-01-08  |       1 |       4 |
+|      10 |         10 |           4 | 2016-01-05 | 2016-01-06   | 2016-01-06  |       2 |       1 |
+|      11 |         11 |           4 | 2016-01-05 | 2016-01-08   | 2016-01-07  |       2 |       7 |
+|      12 |         12 |           4 | 2016-01-06 | 2016-01-08   | 2016-01-09  |       1 |       2 |
+|      13 |         13 |           4 | 2016-01-08 | 2016-01-11   | 2016-01-11  |       2 |       6 |
+|      14 |         14 |           4 | 2016-01-09 | 2016-01-11   | 2016-01-12  |       1 |       3 |
+|      15 |         15 |           4 | 2016-01-09 | 2016-01-10   | 2016-01-12  |       2 |       7 |
+|      16 |         16 |           4 | 2016-01-12 | 2016-01-15   | 2016-01-15  |       1 |       3 |
+|      17 |         17 |           4 | 2016-01-12 | 2016-01-14   | 2016-01-14  |       1 |       3 |
+|      18 |         18 |           4 | 2016-01-14 | 2016-01-17   | 2016-01-15  |       1 |       3 |
+|      19 |         19 |           4 | 2016-01-14 | 2016-01-17   | 2016-01-16  |       1 |       2 |
+|      20 |         20 |           4 | 2016-01-14 | 2016-01-16   | 2016-01-17  |       1 |       2 |
++---------+------------+-------------+------------+--------------+-------------+---------+---------+
+20 rows in set (0.000 sec)
+
+MariaDB [cycles]> select*from productionstocks;
++---------+-----------+----------+
+| storeid | productid | quantity |
++---------+-----------+----------+
+|       1 |         1 |       27 |
+|       1 |         2 |        5 |
+|       1 |         3 |        6 |
+|       1 |         4 |       23 |
+|       1 |         5 |       22 |
+|       1 |         6 |        0 |
+|       1 |         7 |        8 |
+|       1 |         8 |        0 |
+|       1 |         9 |       11 |
+|       1 |        10 |       15 |
+|       1 |        11 |        8 |
+|       1 |        12 |       16 |
+|       1 |        13 |       13 |
+|       1 |        14 |        8 |
+|       1 |        15 |        3 |
+|       1 |        16 |        4 |
+|       1 |        17 |        2 |
+|       1 |        18 |       16 |
+|       1 |        19 |        4 |
+|       1 |        20 |       26 |
+|       1 |        21 |       24 |
+|       1 |        22 |       29 |
+|       1 |        23 |        9 |
+|       1 |        24 |       10 |
+|       1 |        25 |       10 |
+|       1 |        26 |       16 |
+|       1 |        27 |       21 |
+|       1 |        28 |       20 |
+|       1 |        29 |       13 |
+|       1 |        30 |       30 |
+|       2 |         1 |       27 |
+|       2 |         2 |        8 |
+|       2 |         3 |       12 |
+|       2 |         4 |       22 |
+|       2 |         5 |       22 |
+|       2 |         6 |        3 |
+|       2 |         7 |       18 |
+|       2 |         8 |       20 |
+|       2 |         9 |       18 |
+|       2 |        10 |       25 |
+|       2 |        11 |        2 |
+|       2 |        12 |        6 |
+|       2 |        13 |       23 |
+|       2 |        14 |       28 |
+|       2 |        15 |       13 |
+|       2 |        16 |       34 |
+|       2 |        17 |       12 |
+|       2 |        18 |        6 |
+|       2 |        19 |       14 |
+|       2 |        20 |        0 |
+|       2 |        21 |       44 |
+|       2 |        22 |       19 |
+|       2 |        23 |        4 |
+|       2 |        24 |       14 |
+|       2 |        25 |       30 |
+|       2 |        26 |       26 |
+|       2 |        27 |       31 |
+|       2 |        28 |       20 |
+|       2 |        29 |       33 |
+|       2 |        30 |       28 |
+|       3 |         1 |       17 |
+|       3 |         2 |       15 |
+|       3 |         3 |        6 |
+|       3 |         4 |        2 |
+|       3 |         5 |       21 |
+|       3 |         6 |        0 |
+|       3 |         7 |       18 |
+|       3 |         8 |       40 |
+|       3 |         9 |       41 |
+|       3 |        10 |        5 |
+|       3 |        11 |       28 |
+|       3 |        12 |        1 |
+|       3 |        13 |        2 |
+|       3 |        14 |        3 |
+|       3 |        15 |        4 |
+|       3 |        16 |        5 |
+|       3 |        17 |        6 |
+|       3 |        18 |        7 |
+|       3 |        19 |        8 |
+|       3 |        20 |        9 |
+|       3 |        21 |       11 |
+|       3 |        22 |       12 |
+|       3 |        23 |       14 |
+|       3 |        24 |       16 |
+|       3 |        25 |       18 |
+|       3 |        26 |       20 |
+|       3 |        27 |       22 |
+|       3 |        28 |       24 |
+|       3 |        29 |       13 |
+|       3 |        30 |       55 |
++---------+-----------+----------+
+90 rows in set (0.000 sec)
+
+MariaDB [cycles]> select*from salesorderitems;
++---------+--------+-----------+----------+-----------+----------+
+| orderid | itemid | productid | quantity | listprice | discount |
++---------+--------+-----------+----------+-----------+----------+
+|       1 |      1 |        20 |        1 |    250.99 |      0.2 |
+|       1 |     21 |        13 |        2 |   2641.98 |      0.1 |
+|       2 |      2 |         8 |        2 |   1199.98 |     0.07 |
+|       2 |     30 |        25 |        1 |    149.99 |      0.8 |
+|       3 |      3 |        10 |        2 |    759.98 |     0.05 |
+|       3 |     23 |        21 |        2 |    833.98 |     0.07 |
+|       4 |      4 |        16 |        2 |       898 |     0.05 |
+|       4 |     28 |        29 |        2 |   3361.98 |      0.2 |
+|       5 |      5 |         4 |        1 |    599.99 |      0.2 |
+|       6 |      6 |         1 |        1 |    549.99 |     0.07 |
+|       7 |      7 |         2 |        2 |    539.98 |     0.05 |
+|       7 |     29 |        30 |        2 |   1999.98 |      0.1 |
+|       8 |      8 |         3 |        1 |    529.99 |     0.05 |
+|       9 |      9 |         4 |        1 |    599.99 |     0.05 |
+|      10 |     10 |         6 |        2 |   1119.99 |      0.1 |
+|      10 |     25 |        24 |        1 |    149.99 |      0.1 |
+|      11 |     11 |        19 |        2 |    501.98 |     0.05 |
+|      11 |     24 |        27 |        2 |    579.98 |      0.1 |
+|      12 |     12 |        17 |        1 |       449 |     0.07 |
+|      12 |     22 |        22 |        1 |    749.99 |     0.05 |
+|      13 |     13 |        11 |        1 |    549.99 |     0.07 |
+|      14 |     14 |        18 |        1 |    346.99 |     0.07 |
+|      15 |     15 |        12 |        2 |   2939.98 |     0.05 |
+|      15 |     27 |        23 |        2 |   1523.98 |      0.1 |
+|      16 |     16 |        15 |        1 |       429 |      0.1 |
+|      17 |     17 |         9 |        2 |    699.98 |     0.07 |
+|      18 |     18 |         5 |        2 |    539.98 |     0.07 |
+|      18 |     31 |        26 |        4 |    839.96 |     10.2 |
+|      19 |     19 |        14 |        1 |    749.99 |     0.07 |
+|      19 |     26 |        28 |        1 |      1549 |     0.05 |
+|      20 |     20 |         7 |        1 |    659.99 |      0.1 |
++---------+--------+-----------+----------+-----------+----------+
+31 rows in set (0.010 sec)
+
+
+
+
+
+
+
+
+SQL OPERATIONS
+------------------------
+
+
+MariaDB [cycles]> select count(customerid)from salescustomers;
++-------------------+
+| count(customerid) |
++-------------------+
+|                20 |
++-------------------+
+1 row in set (0.018 sec)
+
+
+MariaDB [cycles]> select firstname,lastname from salescustomers where customerid=5;
++------------+----------+
+| firstname  | lastname |
++------------+----------+
+| Charolette | Rice     |
++------------+----------+
+1 row in set (0.003 sec)
+
+MariaDB [cycles]> select firstname,lastname,phone from salescustomers where firstname like 'c%';
++------------+----------+----------+
+| firstname  | lastname | phone    |
++------------+----------+----------+
+| Charolette | Rice     | 45216003 |
+| Caren      | Stephens | 52319887 |
++------------+----------+----------+
+2 rows in set (0.000 sec)
+
+MariaDB [cycles]> select concat(firstname,' ',lastname) as fullname from salescustomers;
++------------------+
+| fullname         |
++------------------+
+| Debra Burks      |
+| Kasha Todd       |
+| Tameka Fisher    |
+| Daryl Spence     |
+| Charolette Rice  |
+| Lyndsey Bean     |
+| Latasha Hays     |
+| Jacquline Duncan |
+| Genoveva Baldwin |
+| Pamelia Newman   |
+| Deshawn Mendoza  |
+| Robby Sykes      |
+| Lashawn Ortiz    |
+| Garry Espinoza   |
+| Linnie Branch    |
+| Emmitt Sanchez   |
+| Caren Stephens   |
+| Georgetta Hardin |
+| Lizzette Stein   |
+| Aleta Shepard    |
++------------------+
+20 rows in set (0.002 sec)
+
+MariaDB [cycles]> update salescustomers set phone='9745145110' where customerid=1;
+Query OK, 1 row affected (0.005 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+MariaDB [cycles]> select*from salescustomers;
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+| customerid | firstname  | lastname | phone          | email                      | street                   | city            | state | zipcode |
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+|          1 | Debra      | Burks    | 9745145110     | debra.burks@yahoo.com      | 9273 Thorne Ave.         | Orchard Park    | NY    | 14127   |
+|          2 | Kasha      | Todd     | 9956248        | kasha.todd@yahoo.com       | 910 Vine Street          | Campbell        | CA    | 95008   |
+|          3 | Tameka     | Fisher   | 8956412        | tameka.fisher@aol.com      | 769C Honey Creek St.     | Redondo Beach   | CA    | 90278   |
+|          4 | Daryl      | Spence   | 5231444        | daryl.spence@aol.com       | 988 Pearl Lane           | Uniondale       | NY    | 11553   |
+|          5 | Charolette | Rice     | 45216003       | charolette.rice@msn.com    | 107 River Dr.            | Sacramento      | CA    | 95820   |
+|          6 | Lyndsey    | Bean     | 56632144       | lyndsey.bean@hotmail.com   | 769 West Road            | Fairport        | NY    | 14450   |
+|          7 | Latasha    | Hays     | 986-3359       | latasha.hays@hotmail.com   | 7014 Manor Station Rd.   | Buffalo         | NY    | 14215   |
+|          8 | Jacquline  | Duncan   | 9783456        | jacquline.duncan@yahoo.com | 15 Brown St.             | Jackson Heights | NY    | 11372   |
+|          9 | Genoveva   | Baldwin  | 8765908        | genoveva.baldwin@msn.com   | 8550 Spruce Drive        | Port Washington | NY    | 11050   |
+|         10 | Pamelia    | Newman   | 90887689       | pamelia.newman@gmail.com   | 476 Chestnut Ave.        | Monroe          | NY    | 10950   |
+|         11 | Deshawn    | Mendoza  | 56320012       | deshawn.mendoza@yahoo.com  | 8790 Cobblestone Street  | Monsey          | NY    | 10952   |
+|         12 | Robby      | Sykes    | (516) 583-7761 | robby.sykes@hotmail.com    | 486 Rock Maple Street    | Hempstead       | NY    | 11550   |
+|         13 | Lashawn    | Ortiz    | 78999675       | lashawn.ortiz@msn.com      | 27 Washington Rd.        | Longview        | TX    | 75604   |
+|         14 | Garry      | Espinoza | 5462201        | garry.espinoza@hotmail.com | 7858 Rockaway Court      | Forney          | TX    | 75126   |
+|         15 | Linnie     | Branch   | 8523001        | linnie.branch@gmail.com    | 314 South Columbia Ave.  | Plattsburgh     | NY    | 12901   |
+|         16 | Emmitt     | Sanchez  | (212) 945-8823 | emmitt.sanchez@hotmail.com | 461 Squaw Creek Road     | New York        | NY    | 10002   |
+|         17 | Caren      | Stephens | 52319887       | caren.stephens@msn.com     | 914 Brook St.            | Scarsdale       | NY    | 10583   |
+|         18 | Georgetta  | Hardin   | 8765990        | georgetta.hardin@aol.com   | 474 Chapel Dr.           | Canandaigua     | NY    | 14424   |
+|         19 | Lizzette   | Stein    | 90776887       | lizzette.stein@yahoo.com   | 19 Green Hill Lane       | Orchard Park    | NY    | 14127   |
+|         20 | Aleta      | Shepard  | 5520321        | aleta.shepard@aol.com      | 684 Howard St.           | Sugar Land      | TX    | 77478   |
++------------+------------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+20 rows in set (0.000 sec)
+
+
+MariaDB [cycles]> select productid,productname from productionproducts where listprice>100 and listprice<700;
++-----------+---------------------------------------------------+
+| productid | productname                                       |
++-----------+---------------------------------------------------+
+|         1 | Electra Townie Original 21D - 2016                |
+|         2 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |
+|         3 | Electra Moto 1 - 2016                             |
+|         4 | Electra Townie Original 7D EQ - 2016              |
+|         5 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |
+|         6 | Electra Townie Original 7D EQ - 2016              |
+|         7 | Electra Amsterdam Original 3i - 2015/2017         |
+|         8 | Electra Cruiser Lux Fat Tire 1 Ladies - 2017      |
+|         9 | Electra Moto 3i (20-inch) - Boy's - 2017          |
+|        10 | Haro Flightline One ST - 2017                     |
+|        11 | Haro Flightline Two 26 Plus - 2017                |
+|        15 | Pure Cycles Vine 8-Speed - 2016                   |
+|        16 | Pure Cycles Western 3-Speed - Women's - 2015/2016 |
+|        17 | Pure Cycles William 3-Speed - 2016                |
+|        18 | Sun Bicycles Lil Bolt Type-R - 2017               |
+|        19 | Sun Bicycles Revolutions 24 - 2017                |
+|        20 | Sun Bicycles Revolutions 24 - Girl's - 2017       |
+|        21 | Sun Bicycles Cruz 7 - 2017                        |
+|        24 | Trek Boy's Kickster - 2015/2017                   |
+|        25 | Trek Girl's Kickster - 2017                       |
+|        26 | Trek Precaliber 16 Boys - 2017                    |
+|        27 | Strider Strider 20 Sport - 2018                   |
++-----------+---------------------------------------------------+
+22 rows in set (0.019 sec)
+
+
+MariaDB [cycles]> select*from productionproducts order by productid desc;
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+| productid | productname                                       | brandid | categoryid | modelyear | listprice |
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+|        30 | Surly Big Dummy Frameset - 2017                   |       8 |          7 |      2017 |    999.99 |
+|        29 | Surly Straggler 650b - 2016                       |       8 |          4 |      2016 |   1680.99 |
+|        28 | Surly Straggler - 2016                            |       8 |          4 |      2016 |      1549 |
+|        27 | Strider Strider 20 Sport - 2018                   |       6 |          1 |      2018 |    289.99 |
+|        26 | Trek Precaliber 16 Boys - 2017                    |       9 |          1 |      2017 |    209.99 |
+|        25 | Trek Girl's Kickster - 2017                       |       9 |          1 |      2017 |    149.99 |
+|        24 | Trek Boy's Kickster - 2015/2017                   |       9 |          1 |      2017 |    149.99 |
+|        23 | Sun Bicycles Brickell Tandem CB - 2017            |       7 |          3 |      2017 |    761.99 |
+|        22 | Sun Bicycles Brickell Tandem 7 - 2017             |       7 |          3 |      2017 |    749.99 |
+|        21 | Sun Bicycles Cruz 7 - 2017                        |       7 |          3 |      2017 |    416.99 |
+|        20 | Sun Bicycles Revolutions 24 - Girl's - 2017       |       7 |          3 |      2017 |    250.99 |
+|        19 | Sun Bicycles Revolutions 24 - 2017                |       7 |          3 |      2017 |    250.99 |
+|        18 | Sun Bicycles Lil Bolt Type-R - 2017               |       7 |          3 |      2017 |    346.99 |
+|        17 | Pure Cycles William 3-Speed - 2016                |       4 |          3 |      2016 |       449 |
+|        16 | Pure Cycles Western 3-Speed - Women's - 2015/2016 |       4 |          3 |      2016 |       449 |
+|        15 | Pure Cycles Vine 8-Speed - 2016                   |       4 |          3 |      2016 |       429 |
+|        14 | Ritchey Timberwolf Frameset - 2016                |       5 |          6 |      2016 |    749.99 |
+|        13 | Heller Shagamaw Frame - 2016                      |       3 |          6 |      2016 |   1320.99 |
+|        12 | Haro Shift R3 - 2017                              |       2 |          6 |      2017 |   1469.99 |
+|        11 | Haro Flightline Two 26 Plus - 2017                |       2 |          7 |      2017 |    549.99 |
+|        10 | Haro Flightline One ST - 2017                     |       2 |          6 |      2017 |    379.99 |
+|         9 | Electra Moto 3i (20-inch) - Boy's - 2017          |       1 |          5 |      2017 |    349.99 |
+|         8 | Electra Cruiser Lux Fat Tire 1 Ladies - 2017      |       1 |          4 |      2017 |    599.99 |
+|         7 | Electra Amsterdam Original 3i - 2015/2017         |       1 |          3 |      2017 |    659.99 |
+|         6 | Electra Townie Original 7D EQ - 2016              |       1 |          2 |      2016 |    599.99 |
+|         5 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |       1 |          1 |      2016 |    269.99 |
+|         4 | Electra Townie Original 7D EQ - 2016              |       1 |          3 |      2016 |    599.99 |
+|         3 | Electra Moto 1 - 2016                             |       1 |          3 |      2016 |    529.99 |
+|         2 | Electra Girl's Hawaii 1 (16-inch) - 2015/2016     |       1 |          2 |      2016 |    269.99 |
+|         1 | Electra Townie Original 21D - 2016                |       1 |          1 |      2016 |    549.99 |
++-----------+---------------------------------------------------+---------+------------+-----------+-----------+
+30 rows in set (0.000 sec)
+
+
+MariaDB [cycles]> select upper(productname)as pname from productionproducts;
++---------------------------------------------------+
+| pname                                             |
++---------------------------------------------------+
+| ELECTRA TOWNIE ORIGINAL 21D - 2016                |
+| ELECTRA GIRL'S HAWAII 1 (16-INCH) - 2015/2016     |
+| ELECTRA MOTO 1 - 2016                             |
+| ELECTRA TOWNIE ORIGINAL 7D EQ - 2016              |
+| ELECTRA GIRL'S HAWAII 1 (16-INCH) - 2015/2016     |
+| ELECTRA TOWNIE ORIGINAL 7D EQ - 2016              |
+| ELECTRA AMSTERDAM ORIGINAL 3I - 2015/2017         |
+| ELECTRA CRUISER LUX FAT TIRE 1 LADIES - 2017      |
+| ELECTRA MOTO 3I (20-INCH) - BOY'S - 2017          |
+| HARO FLIGHTLINE ONE ST - 2017                     |
+| HARO FLIGHTLINE TWO 26 PLUS - 2017                |
+| HARO SHIFT R3 - 2017                              |
+| HELLER SHAGAMAW FRAME - 2016                      |
+| RITCHEY TIMBERWOLF FRAMESET - 2016                |
+| PURE CYCLES VINE 8-SPEED - 2016                   |
+| PURE CYCLES WESTERN 3-SPEED - WOMEN'S - 2015/2016 |
+| PURE CYCLES WILLIAM 3-SPEED - 2016                |
+| SUN BICYCLES LIL BOLT TYPE-R - 2017               |
+| SUN BICYCLES REVOLUTIONS 24 - 2017                |
+| SUN BICYCLES REVOLUTIONS 24 - GIRL'S - 2017       |
+| SUN BICYCLES CRUZ 7 - 2017                        |
+| SUN BICYCLES BRICKELL TANDEM 7 - 2017             |
+| SUN BICYCLES BRICKELL TANDEM CB - 2017            |
+| TREK BOY'S KICKSTER - 2015/2017                   |
+| TREK GIRL'S KICKSTER - 2017                       |
+| TREK PRECALIBER 16 BOYS - 2017                    |
+| STRIDER STRIDER 20 SPORT - 2018                   |
+| SURLY STRAGGLER - 2016                            |
+| SURLY STRAGGLER 650B - 2016                       |
+| SURLY BIG DUMMY FRAMESET - 2017                   |
++---------------------------------------------------+
+30 rows in set (0.002 sec)
+
+MariaDB [cycles]> select substr(productname,2,5)from productionproducts;
++-------------------------+
+| substr(productname,2,5) |
++-------------------------+
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| lectr                   |
+| aro F                   |
+| aro F                   |
+| aro S                   |
+| eller                   |
+| itche                   |
+| ure C                   |
+| ure C                   |
+| ure C                   |
+| un Bi                   |
+| un Bi                   |
+| un Bi                   |
+| un Bi                   |
+| un Bi                   |
+| un Bi                   |
+| rek B                   |
+| rek G                   |
+| rek P                   |
+| tride                   |
+| urly                    |
+| urly                    |
+| urly                    |
++-------------------------+
+30 rows in set (0.000 sec)
+
+MariaDB [cycles]> select max(listprice)from productionproducts;
++----------------+
+| max(listprice) |
++----------------+
+|        1680.99 |
++----------------+
+1 row in set (0.001 sec)
+
+MariaDB [cycles]> select min(listprice)from productionproducts;
++----------------+
+| min(listprice) |
++----------------+
+|         149.99 |
++----------------+
+1 row in set (0.000 sec)
+
+MariaDB [cycles]> select sum(listprice)from productionproducts;
++--------------------+
+| sum(listprice)     |
++--------------------+
+| 18035.739822387695 |
++--------------------+
+1 row in set (0.013 sec)
+
+MariaDB [cycles]> select itemid,orderid,max(listprice) from salesorderitems having max(listprice)>500;
++--------+---------+----------------+
+| itemid | orderid | max(listprice) |
++--------+---------+----------------+
+|      1 |       1 |        3361.98 |
++--------+---------+----------------+
+1 row in set (0.000 sec)
+
+MariaDB [cycles]> select firstname,lastname from  salescustomers where customerid=(select customerid from salescustomers where firstname='debra');
++-----------+----------+
+| firstname | lastname |
++-----------+----------+
+| Debra     | Burks    |
++-----------+----------+
+1 row in set (0.005 sec)
+
+
+MariaDB [cycles]> select*from salescustomers where zipcode>any(select zipcode from salesstores);
++------------+------------+----------+----------------+----------------------------+--------------------------+---------------+-------+---------+
+| customerid | firstname  | lastname | phone          | email                      | street                   | city          | state | zipcode |
++------------+------------+----------+----------------+----------------------------+--------------------------+---------------+-------+---------+
+|          1 | Debra      | Burks    | 9745145110     | debra.burks@yahoo.com      | 9273 Thorne Ave.         | Orchard Park  | NY    | 14127   |
+|          2 | Kasha      | Todd     | 9956248        | kasha.todd@yahoo.com       | 910 Vine Street          | Campbell      | CA    | 95008   |
+|          3 | Tameka     | Fisher   | 8956412        | tameka.fisher@aol.com      | 769C Honey Creek St.     | Redondo Beach | CA    | 90278   |
+|          4 | Daryl      | Spence   | 5231444        | daryl.spence@aol.com       | 988 Pearl Lane           | Uniondale     | NY    | 11553   |
+|          5 | Charolette | Rice     | 45216003       | charolette.rice@msn.com    | 107 River Dr.            | Sacramento    | CA    | 95820   |
+|          6 | Lyndsey    | Bean     | 56632144       | lyndsey.bean@hotmail.com   | 769 West Road            | Fairport      | NY    | 14450   |
+|          7 | Latasha    | Hays     | 986-3359       | latasha.hays@hotmail.com   | 7014 Manor Station Rd.   | Buffalo       | NY    | 14215   |
+|         12 | Robby      | Sykes    | (516) 583-7761 | robby.sykes@hotmail.com    | 486 Rock Maple Street    | Hempstead     | NY    | 11550   |
+|         13 | Lashawn    | Ortiz    | 78999675       | lashawn.ortiz@msn.com      | 27 Washington Rd.        | Longview      | TX    | 75604   |
+|         14 | Garry      | Espinoza | 5462201        | garry.espinoza@hotmail.com | 7858 Rockaway Court      | Forney        | TX    | 75126   |
+|         15 | Linnie     | Branch   | 8523001        | linnie.branch@gmail.com    | 314 South Columbia Ave.  | Plattsburgh   | NY    | 12901   |
+|         18 | Georgetta  | Hardin   | 8765990        | georgetta.hardin@aol.com   | 474 Chapel Dr.           | Canandaigua   | NY    | 14424   |
+|         19 | Lizzette   | Stein    | 90776887       | lizzette.stein@yahoo.com   | 19 Green Hill Lane       | Orchard Park  | NY    | 14127   |
+|         20 | Aleta      | Shepard  | 5520321        | aleta.shepard@aol.com      | 684 Howard St.           | Sugar Land    | TX    | 77478   |
++------------+------------+----------+----------------+----------------------------+--------------------------+---------------+-------+---------+
+14 rows in set (0.001 sec)
+
+MariaDB [cycles]> select*from salescustomers where zipcode<any(select zipcode from salesstores);
++------------+-----------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+| customerid | firstname | lastname | phone          | email                      | street                   | city            | state | zipcode |
++------------+-----------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+|          1 | Debra     | Burks    | 9745145110     | debra.burks@yahoo.com      | 9273 Thorne Ave.         | Orchard Park    | NY    | 14127   |
+|          2 | Kasha     | Todd     | 9956248        | kasha.todd@yahoo.com       | 910 Vine Street          | Campbell        | CA    | 95008   |
+|          3 | Tameka    | Fisher   | 8956412        | tameka.fisher@aol.com      | 769C Honey Creek St.     | Redondo Beach   | CA    | 90278   |
+|          4 | Daryl     | Spence   | 5231444        | daryl.spence@aol.com       | 988 Pearl Lane           | Uniondale       | NY    | 11553   |
+|          6 | Lyndsey   | Bean     | 56632144       | lyndsey.bean@hotmail.com   | 769 West Road            | Fairport        | NY    | 14450   |
+|          7 | Latasha   | Hays     | 986-3359       | latasha.hays@hotmail.com   | 7014 Manor Station Rd.   | Buffalo         | NY    | 14215   |
+|          8 | Jacquline | Duncan   | 9783456        | jacquline.duncan@yahoo.com | 15 Brown St.             | Jackson Heights | NY    | 11372   |
+|          9 | Genoveva  | Baldwin  | 8765908        | genoveva.baldwin@msn.com   | 8550 Spruce Drive        | Port Washington | NY    | 11050   |
+|         10 | Pamelia   | Newman   | 90887689       | pamelia.newman@gmail.com   | 476 Chestnut Ave.        | Monroe          | NY    | 10950   |
+|         11 | Deshawn   | Mendoza  | 56320012       | deshawn.mendoza@yahoo.com  | 8790 Cobblestone Street  | Monsey          | NY    | 10952   |
+|         12 | Robby     | Sykes    | (516) 583-7761 | robby.sykes@hotmail.com    | 486 Rock Maple Street    | Hempstead       | NY    | 11550   |
+|         13 | Lashawn   | Ortiz    | 78999675       | lashawn.ortiz@msn.com      | 27 Washington Rd.        | Longview        | TX    | 75604   |
+|         14 | Garry     | Espinoza | 5462201        | garry.espinoza@hotmail.com | 7858 Rockaway Court      | Forney          | TX    | 75126   |
+|         15 | Linnie    | Branch   | 8523001        | linnie.branch@gmail.com    | 314 South Columbia Ave.  | Plattsburgh     | NY    | 12901   |
+|         16 | Emmitt    | Sanchez  | (212) 945-8823 | emmitt.sanchez@hotmail.com | 461 Squaw Creek Road     | New York        | NY    | 10002   |
+|         17 | Caren     | Stephens | 52319887       | caren.stephens@msn.com     | 914 Brook St.            | Scarsdale       | NY    | 10583   |
+|         18 | Georgetta | Hardin   | 8765990        | georgetta.hardin@aol.com   | 474 Chapel Dr.           | Canandaigua     | NY    | 14424   |
+|         19 | Lizzette  | Stein    | 90776887       | lizzette.stein@yahoo.com   | 19 Green Hill Lane       | Orchard Park    | NY    | 14127   |
+|         20 | Aleta     | Shepard  | 5520321        | aleta.shepard@aol.com      | 684 Howard St.           | Sugar Land      | TX    | 77478   |
++------------+-----------+----------+----------------+----------------------------+--------------------------+-----------------+-------+---------+
+19 rows in set (0.005 sec)
+
+
+MariaDB [cycles]> select*from salescustomers where zipcode=any(select zipcode from salesstores);
+Empty set (0.002 sec)
+
+
+
+MariaDB [cycles]> select o.orderid,so.productid,so.listprice from salesorders as o join salesorderitems as so on o.orderid=so.productid;
++---------+-----------+-----------+
+| orderid | productid | listprice |
++---------+-----------+-----------+
+|      20 |        20 |    250.99 |
+|      13 |        13 |   2641.98 |
+|       8 |         8 |   1199.98 |
+|      10 |        10 |    759.98 |
+|      16 |        16 |       898 |
+|       4 |         4 |    599.99 |
+|       1 |         1 |    549.99 |
+|       2 |         2 |    539.98 |
+|       3 |         3 |    529.99 |
+|       4 |         4 |    599.99 |
+|       6 |         6 |   1119.99 |
+|      19 |        19 |    501.98 |
+|      17 |        17 |       449 |
+|      11 |        11 |    549.99 |
+|      18 |        18 |    346.99 |
+|      12 |        12 |   2939.98 |
+|      15 |        15 |       429 |
+|       9 |         9 |    699.98 |
+|       5 |         5 |    539.98 |
+|      14 |        14 |    749.99 |
+|       7 |         7 |    659.99 |
++---------+-----------+-----------+
+21 rows in set (0.002 sec)
+
+MariaDB [cycles]> select o.orderid,so.productid,so.listprice from salesorders as o inner join salesorderitems as so on o.orderid=so.productid;
++---------+-----------+-----------+
+| orderid | productid | listprice |
++---------+-----------+-----------+
+|      20 |        20 |    250.99 |
+|      13 |        13 |   2641.98 |
+|       8 |         8 |   1199.98 |
+|      10 |        10 |    759.98 |
+|      16 |        16 |       898 |
+|       4 |         4 |    599.99 |
+|       1 |         1 |    549.99 |
+|       2 |         2 |    539.98 |
+|       3 |         3 |    529.99 |
+|       4 |         4 |    599.99 |
+|       6 |         6 |   1119.99 |
+|      19 |        19 |    501.98 |
+|      17 |        17 |       449 |
+|      11 |        11 |    549.99 |
+|      18 |        18 |    346.99 |
+|      12 |        12 |   2939.98 |
+|      15 |        15 |       429 |
+|       9 |         9 |    699.98 |
+|       5 |         5 |    539.98 |
+|      14 |        14 |    749.99 |
+|       7 |         7 |    659.99 |
++---------+-----------+-----------+
+21 rows in set (0.000 sec)
+
+MariaDB [cycles]> select o.orderid,so.productid,so.listprice from salesorders as o left join salesorderitems as so on o.orderid=so.productid;
++---------+-----------+-----------+
+| orderid | productid | listprice |
++---------+-----------+-----------+
+|       1 |         1 |    549.99 |
+|       4 |         4 |    599.99 |
+|       4 |         4 |    599.99 |
+|       9 |         9 |    699.98 |
+|      12 |        12 |   2939.98 |
+|      14 |        14 |    749.99 |
+|      16 |        16 |       898 |
+|      17 |        17 |       449 |
+|      18 |        18 |    346.99 |
+|      19 |        19 |    501.98 |
+|      20 |        20 |    250.99 |
+|       2 |         2 |    539.98 |
+|       3 |         3 |    529.99 |
+|       5 |         5 |    539.98 |
+|       6 |         6 |   1119.99 |
+|       7 |         7 |    659.99 |
+|       8 |         8 |   1199.98 |
+|      10 |        10 |    759.98 |
+|      11 |        11 |    549.99 |
+|      13 |        13 |   2641.98 |
+|      15 |        15 |       429 |
++---------+-----------+-----------+
+21 rows in set (0.001 sec)
+
+
+MariaDB [cycles]> select o.orderid,so.productid,so.listprice from salesorders as o right join salesorderitems as so on o.orderid=so.productid;
++---------+-----------+-----------+
+| orderid | productid | listprice |
++---------+-----------+-----------+
+|      20 |        20 |    250.99 |
+|      13 |        13 |   2641.98 |
+|       8 |         8 |   1199.98 |
+|    NULL |        25 |    149.99 |
+|      10 |        10 |    759.98 |
+|    NULL |        21 |    833.98 |
+|      16 |        16 |       898 |
+|    NULL |        29 |   3361.98 |
+|       4 |         4 |    599.99 |
+|       1 |         1 |    549.99 |
+|       2 |         2 |    539.98 |
+|    NULL |        30 |   1999.98 |
+|       3 |         3 |    529.99 |
+|       4 |         4 |    599.99 |
+|       6 |         6 |   1119.99 |
+|    NULL |        24 |    149.99 |
+|      19 |        19 |    501.98 |
+|    NULL |        27 |    579.98 |
+|      17 |        17 |       449 |
+|    NULL |        22 |    749.99 |
+|      11 |        11 |    549.99 |
+|      18 |        18 |    346.99 |
+|      12 |        12 |   2939.98 |
+|    NULL |        23 |   1523.98 |
+|      15 |        15 |       429 |
+|       9 |         9 |    699.98 |
+|       5 |         5 |    539.98 |
+|    NULL |        26 |    839.96 |
+|      14 |        14 |    749.99 |
+|    NULL |        28 |      1549 |
+|       7 |         7 |    659.99 |
++---------+-----------+-----------+
+31 rows in set (0.001 sec)
+
+MariaDB [cycles]> select o.orderid,so.productid,so.listprice from salesorders as o cross join salesorderitems as so on o.orderid=so.productid;
++---------+-----------+-----------+
+| orderid | productid | listprice |
++---------+-----------+-----------+
+|      20 |        20 |    250.99 |
+|      13 |        13 |   2641.98 |
+|       8 |         8 |   1199.98 |
+|      10 |        10 |    759.98 |
+|      16 |        16 |       898 |
+|       4 |         4 |    599.99 |
+|       1 |         1 |    549.99 |
+|       2 |         2 |    539.98 |
+|       3 |         3 |    529.99 |
+|       4 |         4 |    599.99 |
+|       6 |         6 |   1119.99 |
+|      19 |        19 |    501.98 |
+|      17 |        17 |       449 |
+|      11 |        11 |    549.99 |
+|      18 |        18 |    346.99 |
+|      12 |        12 |   2939.98 |
+|      15 |        15 |       429 |
+|       9 |         9 |    699.98 |
+|       5 |         5 |    539.98 |
+|      14 |        14 |    749.99 |
+|       7 |         7 |    659.99 |
++---------+-----------+-----------+
+21 rows in set (0.001 sec)
+
+MariaDB [cycles]> select ss.firstname,ss.lastname,sc.firstname,sc.lastname from salesstaffs as ss,salescustomers as sc where ss.staffid=sc.customerid;
++------------+----------+------------+----------+
+| firstname  | lastname | firstname  | lastname |
++------------+----------+------------+----------+
+| Fabiola    | Jackson  | Debra      | Burks    |
+| Mireya     | Copeland | Kasha      | Todd     |
+| Genna      | Serrano  | Tameka     | Fisher   |
+| Virgie     | Wiggins  | Daryl      | Spence   |
+| Jannette   | David    | Charolette | Rice     |
+| Marcelene  | Boyer    | Lyndsey    | Bean     |
+| Venita     | Daniel   | Latasha    | Hays     |
+| Kali       | Vargas   | Jacquline  | Duncan   |
+| Layla      | Terrell  | Genoveva   | Baldwin  |
+| Bernardine | Houston  | Pamelia    | Newman   |
++------------+----------+------------+----------+
+10 rows in set (0.001 sec)
+
+MariaDB [cycles]> create view cc as select firstname,lastname,phone from salescustomers where customerid in(1,5,10,15,11,20);
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [cycles]> select*from cc;
++------------+----------+------------+
+| firstname  | lastname | phone      |
++------------+----------+------------+
+| Debra      | Burks    | 9745145110 |
+| Charolette | Rice     | 45216003   |
+| Pamelia    | Newman   | 90887689   |
+| Deshawn    | Mendoza  | 56320012   |
+| Linnie     | Branch   | 8523001    |
+| Aleta      | Shepard  | 5520321    |
++------------+----------+------------+
+6 rows in set (0.002 sec)
+
+
+MariaDB [cycles]> alter view cc as select street,state,zipcode from salescustomers;
+Query OK, 0 rows affected (0.006 sec)
+
+MariaDB [cycles]> select*from cc;
++--------------------------+-------+---------+
+| street                   | state | zipcode |
++--------------------------+-------+---------+
+| 9273 Thorne Ave.         | NY    | 14127   |
+| 910 Vine Street          | CA    | 95008   |
+| 769C Honey Creek St.     | CA    | 90278   |
+| 988 Pearl Lane           | NY    | 11553   |
+| 107 River Dr.            | CA    | 95820   |
+| 769 West Road            | NY    | 14450   |
+| 7014 Manor Station Rd.   | NY    | 14215   |
+| 15 Brown St.             | NY    | 11372   |
+| 8550 Spruce Drive        | NY    | 11050   |
+| 476 Chestnut Ave.        | NY    | 10950   |
+| 8790 Cobblestone Street  | NY    | 10952   |
+| 486 Rock Maple Street    | NY    | 11550   |
+| 27 Washington Rd.        | TX    | 75604   |
+| 7858 Rockaway Court      | TX    | 75126   |
+| 314 South Columbia Ave.  | NY    | 12901   |
+| 461 Squaw Creek Road     | NY    | 10002   |
+| 914 Brook St.            | NY    | 10583   |
+| 474 Chapel Dr.           | NY    | 14424   |
+| 19 Green Hill Lane       | NY    | 14127   |
+| 684 Howard St.           | TX    | 77478   |
++--------------------------+-------+---------+
+20 rows in set (0.002 sec)
+
+
+
+
